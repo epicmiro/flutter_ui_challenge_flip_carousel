@@ -164,10 +164,11 @@ class _CardFlipperState extends State<CardFlipper> with TickerProviderStateMixin
     //  [0.0, 1.0, 0.0, 0.0],
     //  [0.0, 0.0, 1.0, -radius],
     //  [0.0, 0.0, 0.0, 1.0]]
+
     final perspective = 0.002;
     final radius = 1.0;
     final angle = scrollPercent * pi / 8;
-    final horizontalTranslation = 0.0;
+
     Matrix4 projection = new Matrix4.identity()
       ..setEntry(0, 0, 1 / radius)
       ..setEntry(1, 1, 1 / radius)
@@ -175,15 +176,13 @@ class _CardFlipperState extends State<CardFlipper> with TickerProviderStateMixin
       ..setEntry(2, 3, -radius)
       ..setEntry(3, 3, perspective * radius + 1.0);
 
-    // Model matrix by first translating the object from the origin of the world
-    // by radius in the z axis and then rotating against the world.
-    final rotationPointMultiplier = angle > 0.0 ? angle / angle.abs() : 1.0;
-    print('Angle: $angle');
-    projection *= new Matrix4.translationValues(
-            horizontalTranslation + (rotationPointMultiplier * 300.0), 0.0, 0.0) *
-        new Matrix4.rotationY(angle) *
-        new Matrix4.translationValues(0.0, 0.0, radius) *
-        new Matrix4.translationValues(-rotationPointMultiplier * 300.0, 0.0, 0.0);
+    // Corrected projection to simulate original design.
+    // Translates the card further back into the "scene" depending on the absolute angle.
+    // X-translation is to bring the cards closer together while swiping to reduce blank-space so it matches the original.
+    
+    projection *= 
+        new Matrix4.translationValues(angle * 100.0, 0.0, -0.0 + angle.abs() * -700.0) *
+        new Matrix4.rotationY(angle);
 
     return projection;
   }
@@ -203,6 +202,7 @@ class _CardFlipperState extends State<CardFlipper> with TickerProviderStateMixin
         padding: const EdgeInsets.all(16.0),
         child: new Transform(
           transform: _buildCardProjection(cardScrollPercent - cardIndex),
+          alignment: FractionalOffset.center,
           child: new Card(
             viewModel: viewModel,
             parallaxPercent: parallax,
